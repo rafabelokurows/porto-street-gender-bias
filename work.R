@@ -117,7 +117,7 @@ df3 %>% filter(tolower(sexoCensoBR) == sexoWiki) %>% mutate(sexo=sexoCensoBR),#4
 df3 %>% filter(tolower(sexoCensoBR) != sexoWiki) %>% mutate(sexo=sexoWiki),
 df3 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=NA)
 ) %>% #5
-mutate(sexo=str_to_title(sexo)) %>% count(sexo)
+mutate(sexo=str_to_title(sexo))
 
 saveRDS(df2,"codigos.rds")
 saveRDS(ruascomSexo,"20221202 1052 ruas.rds")
