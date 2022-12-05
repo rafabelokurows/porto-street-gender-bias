@@ -15,6 +15,7 @@ library(tidywikidatar)
 # get_gender("Cantor Zeca Afonso")
 # map_gender("ivani") %>% View()
 # get_gender("ivani",  state = "SP")
+library(gt)
 
 codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria) %>%
   mutate(genero =get_gender(nome_arteria)) %>%
@@ -214,7 +215,45 @@ df3 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=NA)
 ) %>%
 mutate(sexo=str_to_title(sexo))
 
-ruascomSexo %>% count(sexo)
-saveRDS(df2,"codigos.rds")
+agrupado = ruascomSexo %>% count(sexo) %>% mutate(sexo=case_when(is.na(sexo)~NA_character_,
+                                                      sexo=="Female"~"Feminino",
+                                                      sexo=="Male"~"Masculino")) %>%
+  group_by(temsexo = !is.na(sexo)) %>%
+  mutate(pct = n/sum(n)) %>%
+  ungroup %>%   select(-temsexo) %>%
+mutate(pct = ifelse(is.na(sexo),NA_integer_,pct))
+
+agrupado %>% bind_rows(
+agrupado %>%
+  filter(!is.na(sexo)) %>% summarize(n=sum(n)) %>% mutate(sexo = "Total",pct=1) %>% relocate(sexo)) %>%
+  arrange(is.na(sexo)) %>%
+  gt::gt()  %>%
+  gt::tab_row_group(
+    label = "Nomes de pessoas",
+    rows = !is.na(sexo)
+  )  %>% gt::cols_label(n="Nº de ruas") %>%
+  # gt::summary_rows(
+  #   groups = c("Nomes de pessoas"),
+  #   columns = c(n,pct),
+  #   fns = list(
+  #     Total = ~sum(.)),
+  #   formatter = gt::fmt_number,
+  #   decimals = 0,
+  #   use_seps = FALSE
+  # )%>%
+  gt::fmt_percent(pct)%>%
+  # gt::tab_row_group(
+  #   label = "Outros nomes",
+  #   rows = is.na(sexo)
+  # ) %>%
+  gt::row_group_order(groups = c("Nomes de pessoas")) %>%
+  gt::sub_missing(columns = sexo,missing_text = "Outros nomes") %>%
+  gt::sub_missing(columns = pct,missing_text = "")
+# %>%
+#   tab_style(style=cell_borders(sides=c("bottom"),style="solid",weight=px(1.6)),
+#             locations=gt::tab_spanner_delim(columns=everything()))
+
+
+saveRDS(df2,"20221205 codigos sem ajuste.rds")
 saveRDS(df3,"20221205 codigos ajustados.rds")
 saveRDS(ruascomSexo,"20221205 1041 ruas.rds")
