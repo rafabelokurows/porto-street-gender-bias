@@ -1,28 +1,27 @@
+#Codigos postais
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 codigos = read.csv("C:\\Users\\belokurowsr\\OneDrive - Kantar\\Desktop\\Kantar\\Puntos Sondeo\\codigos_postais.csv",fileEncoding = "UTF8")
-
 codigos %>% filter(desig_postal == "PORTO") %>% head(10) %>% View()
-
-
 codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria)
 
-if(!require("devtools")) install.packages("devtools")
-devtools::install_github("meirelesff/genderBR")
+#Packages
+library(tidyverse)
+#if(!require("devtools")) install.packages("devtools")
+#devtools::install_github("meirelesff/genderBR")
 library(genderBR)
-
-install.packages("tidywikidatar")
+#install.packages("tidywikidatar")
 library(tidywikidatar)
-get_gender("maria")
-get_gender("Cantor Zeca Afonso")
-map_gender("ivani") %>% View()
-get_gender("ivani",  state = "SP")
+# get_gender("maria")
+# get_gender("Cantor Zeca Afonso")
+# map_gender("ivani") %>% View()
+# get_gender("ivani",  state = "SP")
 
 codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria) %>%
   mutate(genero =get_gender(nome_arteria)) %>%
   View()
-dfteste = codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria) %>%
-  mutate(genero =get_gender(nome_arteria)) %>% filter(is.na(genero)) %>%
-  slice(69:89)
+# dfteste = codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria) %>%
+#   mutate(genero =get_gender(nome_arteria)) %>% filter(is.na(genero)) %>%
+#   slice(69:89)
 
 # dfteste %>%
 #   mutate(sexoWiki = tw_get_label(tw_get_property(tw_search(search = nome_arteria,limit = 1)$id,p="P21")$value))
@@ -40,11 +39,15 @@ df2 = codigos %>% filter(desig_postal == "PORTO") %>% count(nome_arteria) %>%
                               TRUE~NA_character_))
 toc()
 
+
+
+df2 = readRDS("codigos.rds")
 #2270.11 sec elapsed
 df2 %>% filter(is.na(sexoCensoBR) & !is.na(sexoWiki ))
-df2  %>% filter(tolower(sexoCensoBR) != tolower(sexoWiki ))
+df2  %>% filter(tolower(sexoCensoBR) != tolower(sexoWiki))
 df2 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki)) %>% clipr::write_clip()
-modificar = c("Aires Borges",
+df2 %>% clipr::write_clip()
+toMale = c("Aires Borges",
               "Aires de Gouveia Osório",
               "Almeida Valente",
               "Barbosa de Castro",
@@ -54,10 +57,11 @@ modificar = c("Aires Borges",
               "Câmara Sinval",
               "Carrilho Videira",
               "Cantor Zeca Afonso",
-              "Carrington da Costa"
+              "Carrington da Costa",
               "Carvalho Barbosa",
               "Coelho Lousada",
               "Coelho Neto",
+           "Correia de Barros",
               "Correia de Sá",
               "Correia Pinto",
               "Costa Barreto",
@@ -70,9 +74,15 @@ modificar = c("Aires Borges",
               "Ferreira Lapa",
               "Forrester",
               "Historiador Robert Smith",
+           "Leote do Rego",
+           "Lobão Vital",
+           "Machado Vaz",
+              "Mamede",
               "Melo Adrião",
               "Melo Leote",
               "Moreira de Assunção",
+              "Mota Pinto",
+           "Nascente da Colónia do Doutor Manuel Laranjeira",
               "Panorâmica Edgar Cardoso",
               "Particular Borges e Irmão",
               "Particular de Santo Isidro",
@@ -83,6 +93,7 @@ modificar = c("Aires Borges",
               "Pereira de Novais",
               "Pereira Reis",
               "Pirmin Treku",
+           "Poente da Colónia do Doutor Manuel Laranjeira",
               "Rebelo da Costa",
               "Ribeiro de Sousa",
               "Rocha Peixoto",
@@ -101,23 +112,109 @@ modificar = c("Aires Borges",
               "Sousa Ávides",
               "Sousa Júnior",
               "Sousa Rosa",
-              "Teixeira de Vasconcelos")
-df3 = df2 %>% mutate(sexoWiki = case_when(str_detect(nome_arteria  ,paste(modificar, collapse = "|"))~"male",
+              "Teixeira de Vasconcelos",
+           "Vasques de Mesquita")
+toNa = c("Aguda",
+"Azálias",
+"Bessa",
+"Bicalho",
+"Calvário",
+"Cima",
+"Cortes",
+"Dias",
+"Escolástica",
+"Flores",
+"Fontinha",
+"França",
+"Jasmins",
+"Mamede",
+"Mira",
+"Moinhos",
+"Mota Pinto",
+"Paço",
+"Pedras",
+"Poeta",
+"Reboleira",
+"Rosmaninho",
+"Agra",
+"Agra de Ramalde",
+"Agra do Amial",
+"Águeda",
+"Aldeia",
+"Alegria",
+"Amparo",
+"Argentina",
+"Arménia",
+"Ave",
+"Bela",
+"Bela da Fontinha",
+"Bela Vista",
+"Burnay",
+"Dores",
+"Encarnação",
+"Escolástica",
+"Estrela e Vigorosa Sport",
+"Fábrica",
+"Fábrica \"A Invencível\"",
+"Fábrica do Bairro da Areosa",
+"Fábrica Social",
+"Florinha da Abrigada",
+"Glória",
+"Graciosa",
+"Índia",
+"Justa",
+"Leça",
+"Liberdade",
+"Liége",
+"Nova Alfândega",
+"Nova da Corujeira",
+"Nova da Estação",
+"Nova das Areias",
+"Nova de Azevedo",
+"Nova de Currais",
+"Nova de São Crispim",
+"Nova do Covelo",
+"Nova do Regado",
+"Nova do Rio",
+"Nova do Tronco",
+"Nova do Vale Formoso",
+"Nova Pinheiro de Campanhã",
+"Nova Sintra",
+"Paiol",
+"Pedra Verde",
+"Preciosa",
+"Sacramento",
+"Sande",
+"Saudade",
+"Segunda",
+"Vale Formoso",
+"Virtudes",
+"Vitória")
+toFemale = c("Lamas")
+df3 = df2 %>% mutate(sexoWiki = case_when(str_detect(nome_arteria  ,paste(toMale, collapse = "|"))~"male",
+                                          str_detect(nome_arteria  ,paste(toFemale, collapse = "|"))~"female",
+                                          str_detect(nome_arteria  ,paste(toNa, collapse = "|"))~NA_character_,
                                     TRUE~sexoWiki))
-#total = 1768
-df3 %>% filter(is.na(sexoCensoBR) & !is.na(sexoWiki )) %>% mutate(sexo=sexoWiki)#144
-df3 %>% filter(!is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=sexoCensoBR)#480
-df3 %>% filter(tolower(sexoCensoBR) == sexoWiki) %>% mutate(sexo=sexoCensoBR)#423
-df3 %>% filter(tolower(sexoCensoBR) != sexoWiki) %>% mutate(sexo=sexoWiki)#5
-df3 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=NA)#716
 
-ruascomSexo = bind_rows(df3 %>% filter(is.na(sexoCensoBR) & !is.na(sexoWiki )) %>% mutate(sexo=sexoWiki),#144
-df3 %>% filter(!is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=sexoCensoBR),#480
-df3 %>% filter(tolower(sexoCensoBR) == sexoWiki) %>% mutate(sexo=sexoCensoBR),#423
+df3 %>% clipr::write_clip()
+
+#total = 1768
+df3 %>% filter(is.na(sexoCensoBR) & !is.na(sexoWiki )) %>% mutate(sexo=sexoWiki)#133
+df3 %>% filter(!is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=sexoCensoBR)#480
+df3 %>% filter(tolower(sexoCensoBR) == sexoWiki) %>% mutate(sexo=sexoCensoBR)#415
+df3 %>% filter(tolower(sexoCensoBR) != sexoWiki) %>% mutate(sexo=sexoWiki)#3
+df3 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=NA)#727
+
+
+ruascomSexo = bind_rows(df3 %>% filter(is.na(sexoCensoBR) & !is.na(sexoWiki )) %>% mutate(sexo=sexoWiki),
+df3 %>% filter(!is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=sexoCensoBR),
+df3 %>% filter(tolower(sexoCensoBR) == sexoWiki) %>% mutate(sexo=sexoCensoBR),
 df3 %>% filter(tolower(sexoCensoBR) != sexoWiki) %>% mutate(sexo=sexoWiki),
 df3 %>% filter(is.na(sexoCensoBR) & is.na(sexoWiki )) %>% mutate(sexo=NA)
-) %>% #5
+) %>%
 mutate(sexo=str_to_title(sexo))
 
+ruascomSexo %>% count(sexo)
 saveRDS(df2,"codigos.rds")
-saveRDS(ruascomSexo,"20221202 1052 ruas.rds")
+saveRDS(df3,"20221205 codigos ajustados.rds")
+saveRDS(ruascomSexo,"20221205 1041 ruas.rds")
