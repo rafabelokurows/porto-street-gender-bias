@@ -119,3 +119,55 @@ ggplot() +
   coord_sf(xlim = city_coords[1,],
            ylim = city_coords[2,],
            expand = FALSE)
+
+leaflet() %>%
+  addTiles() %>%
+  # add a dark basemap
+  addProviderTiles("CartoDB.DarkMatter")%>%
+  addProviderTiles("CartoDB.VoyagerLabelsUnder")%>%
+  addPopups(174.7690922, -36.8523071, "R was born here!") %>%
+  mapOptions(zoomToLimits = "first")
+
+library(leaflet)
+leaflet() %>%
+  # add a dark basemap
+  addProviderTiles("CartoDB.DarkMatter", group="Dark") %>%
+  #addProviderTiles("CartoDB.VoyagerLabelsUnder", group="background 1") %>%
+  addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+  addProviderTiles(provider = "CartoDB.Positron",group="Carto DB") %>% 
+  #addTiles() %>%
+  leaflet::addPolylines(
+    data = streets$osm_lines %>% 
+      filter(is.na(sexoFinal2)),
+    color = "grey",
+    smoothFactor = 0.8,
+    weight = 1,
+    group="Outros",
+    label=streets$osm_lines %>% 
+      filter(is.na(sexoFinal2)) %>% pull(name)
+  ) %>% 
+  leaflet::addPolylines(
+    data = streets$osm_lines %>% 
+      filter(sexoFinal2 == "Male"),
+    color = "blue",
+    smoothFactor = 0.8,
+    weight = 1.8,
+    group="Homens",
+    label = streets$osm_lines %>% 
+      filter(sexoFinal2 == "Male") %>% pull(name)
+    
+  ) %>% 
+  leaflet::addPolylines(
+    data = streets$osm_lines %>% 
+      filter(sexoFinal2 == "Female"),
+    color = "#FF5F15",
+    smoothFactor = 0.8,
+    weight = 2.5,
+    group="Mulheres",
+    label = streets$osm_lines %>% 
+      filter(sexoFinal2 == "Female") %>% pull(name)
+    
+  ) %>% 
+  addLayersControl( baseGroups = c("Dark","Toner Lite","Carto DB"),
+                    overlayGroups = c("Homens","Mulheres","Outros"), 
+                   options = layersControlOptions(collapsed = FALSE))
