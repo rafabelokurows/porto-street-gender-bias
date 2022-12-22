@@ -22,8 +22,8 @@ streets <- opq(bbox = limits)  %>%
 # available_features()
 # osmdata::available_tags("highway")
 
-unique(streets$osm_lines$name) %>% sort() %>% as.data.frame() %>% 
-  rename(rua=1) %>% 
+unique(streets$osm_lines$name) %>% sort() %>% as.data.frame() %>%
+  rename(rua=1) %>%
   mutate(nome = case_when(str_starts(rua,"N贸 ")~str_sub(rua,4),
                              str_starts(rua,"Rua |Via ")~str_sub(rua,5),
                              str_starts(rua,"Muro |Cais |Beco |Vila ")~str_sub(rua,6),
@@ -32,13 +32,13 @@ unique(streets$osm_lines$name) %>% sort() %>% as.data.frame() %>%
                              str_starts(rua,"Ribeira |Recanto |Estrada |Avenida |Viaduto |Praceta |Cal莽ada |Alameda |Rotunda |Escadas |Passeio |Ladeira |Caminho ")~str_sub(rua,9),
                              str_starts(rua,"Travessa |Ciclovia |Tribunal ")~str_sub(rua,10),
                              str_starts(rua,"Miradouro |Escadaria ")~str_sub(rua,11))
-         
-         ) %>% 
+
+         ) %>%
   mutate(teste=str_starts(nome,"^de\\s|^da\\s|^ da\\s|^do\\s"),
          clean=case_when(str_starts(nome,"^de\\s|^ da\\s|^da\\s|^do\\s")~str_sub(nome,4),
                          str_starts(nome,"^das\\s|^dos\\s")~str_sub(nome,5),
                          TRUE~nome)
-         ) %>% 
+         ) %>%
   filter(!is.na(clean)) %>%
   mutate(genero =get_gender(clean)) -> ruas
 
@@ -50,11 +50,11 @@ ruas2 = ruas %>%
   mutate(sexoWiki = case_when(!is.na(clean)~tw_get_label(tw_get_property(tw_search(search = clean,limit = 1)$id,p="P21")$value),
                               TRUE~NA_character_))
 
-saveRDS(ruas2,"ruas2.rds")  
-ruas2 %>% 
+saveRDS(ruas2,"ruas2.rds")
+ruas2 %>%
   mutate(sexoFinal = case_when(tolower(genero)==sexoWiki~genero,
                                !is.na(genero)& is.na(sexoWiki)~genero,
-                               is.na(genero)&!is.na(sexoWiki)~stringr::str_to_title(sexoWiki))) %>% 
+                               is.na(genero)&!is.na(sexoWiki)~stringr::str_to_title(sexoWiki))) %>%
   clipr::write_clip()
 
 codigos = readRDS("C:\\Users\\rafae\\Downloads\\20221205 codigos ajustados.rds")
@@ -71,31 +71,31 @@ ruas3 %>% View()
 ruas4 = ruas3 %>% mutate(sexoFinal2 = case_when(ajustar=="Nada"~NA_character_,
                            ajustar=="Male"~"Male",
                            ajustar=="Female"~"Female",
-                           is.na(ajustar)~sexoFinal)) 
+                           is.na(ajustar)~sexoFinal))
 
-# %>% group_by(is.na(sexoFinal2)) %>% 
-#   count(sexoFinal2) %>% 
+# %>% group_by(is.na(sexoFinal2)) %>%
+#   count(sexoFinal2) %>%
 #   mutate(prop=n/sum(n))
 library(sf)
-streets$osm_lines %>% 
-  anti_join(ruas4 %>% select(rua,sexoFinal2),by=c("name"="rua")) 
+streets$osm_lines %>%
+  anti_join(ruas4 %>% select(rua,sexoFinal2),by=c("name"="rua"))
 
 streets2 = streets
-streets2$osm_lines = streets$osm_lines %>% left_join(ruasfinal %>% select(rua,sexoFinal2),by=c("name"="rua")) 
+streets2$osm_lines = streets$osm_lines %>% left_join(ruasfinal %>% select(rua,sexoFinal2),by=c("name"="rua"))
 
 
-ruasAjustar = ruas %>% anti_join(ruas4 %>% select(rua,sexoFinal2),by=c("nome"="rua"))  %>% 
+ruasAjustar = ruas %>% anti_join(ruas4 %>% select(rua,sexoFinal2),by=c("nome"="rua"))  %>%
   filter(!rua %in% ruas4$rua)
 ruasAjustar %>% openxlsx::write.xlsx("ruasAjustar.xlsx")
 
-ruasajustadas = openxlsx::read.xlsx("ruasAjustar.xlsx") %>% 
+ruasajustadas = openxlsx::read.xlsx("ruasAjustar.xlsx") %>%
   mutate(sexoFinal2 = case_when(ajustar=="Nada"~NA_character_,
   ajustar=="Male"~"Male",
   ajustar=="Female"~"Female",
-  is.na(ajustar)~genero)) 
+  is.na(ajustar)~genero))
 
 ruasfinal = bind_rows(ruas4 %>% select(-c(sexoWiki,sexoFinal)),
-ruasajustadas) %>% 
+ruasajustadas) %>%
   mutate(sexoFinal2 = case_when(clean %in% c("Escritor Costa Barreto","Furriel Guilherme Dantas",
                                              "Moraes Caldas",
                                              "Pintor J煤lio Resende",
@@ -111,7 +111,7 @@ ruasajustadas) %>%
                                              "Sousa Aroso",
                                              "Actor Ant贸nio Silva")~"Male",
                                 clean %in% c("Nova do Font茫o","Nova do Pic茫o","Bela Vista","Navegantes")~NA_character_,
-                                TRUE~sexoFinal2)) 
+                                TRUE~sexoFinal2))
 
 ruas %>% anti_join(ruas4 %>% select(rua,sexoFinal2),by=c("nome"="rua")) %>%
   mutate(sexoWiki = case_when(!is.na(clean)~tw_get_label(tw_get_property(tw_search(search = clean,limit = 1)$id,p="P21")$value),
@@ -166,7 +166,7 @@ ggplot() +
            expand = FALSE)
 
 ruas4
-ruasajustadas %>% 
+ruasajustadas %>%
   mutate(sexoFinal2 = case_when(clean %in% c("Escritor Costa Barreto","Furriel Guilherme Dantas",
 "Moraes Caldas",
 "Pintor J煤lio Resende",
@@ -179,57 +179,109 @@ ruasajustadas %>%
 "Silva Ramos",
 "Silva Tapada",
 "Sousa Aroso",
-"Actor Ant贸nio Silva")~"Male")) %>% 
+"Actor Ant贸nio Silva")~"Male")) %>%
   filter(str_detect(clean,"Actor Ant贸nio Silva"))
-
-
 
 saveRDS(ruasfinal,"ruasfinal.rds")
 saveRDS(streets2,"streets2.rds")
+library(sf)
+streets2 = readRDS("C:\\Users\\belokurowsr\\Downloads\\streets2.rds")
+ruasfinal = readRDS("C:\\Users\\belokurowsr\\Downloads\\ruasfinal.rds")
+setwd("C:\\Users\\belokurowsr\\OneDrive - Kantar\\Desktop\\Kantar\\C骴igoPostaisDistrito\\PT_adm2")
+pt_adm2 = st_read("jt394dz4777.shp")
+porto = pt_adm2 %>% filter(name_2 %in% c("Porto")) %>% mutate(name_3 = iconv(name_3,"latin1", "UTF-8"))
+
+head(streets2$osm_lines,10)
+intersec = sf::st_intersection(streets2$osm_lines %>% select(osm_id,geometry), st_union(porto))
+intersec2 = sf::st_intersection(streets2$osm_lines %>% select(osm_id,geometry,name), st_union(porto))
+
+
+streets2$osm_lines = streets2$osm_lines %>%
+  mutate(porto = case_when(osm_id %in% intersec$osm_id~1,
+                           TRUE~0))
+
+streets2$osm_lines %>% filter(sexoFinal2 == "Female") %>% clipr::write_clip()
+
 
 
 library(leaflet)
 leaflet() %>%
-  # add a dark basemap
-  addProviderTiles("CartoDB.DarkMatter", group="Dark") %>%
-  #addProviderTiles("CartoDB.VoyagerLabelsUnder", group="background 1") %>%
-  addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
-  addProviderTiles(provider = "CartoDB.Positron",group="Carto DB") %>% 
-  #addTiles() %>%
+  addProviderTiles("CartoDB.DarkMatter", group="Dark",
+                   options = providerTileOptions(noWrap = F,
+                                                 updateWhenZooming = FALSE,
+                                                 updateWhenIdle = FALSE,opacity = 0.9,
+                                                 attribution = "\u00A9 CartoDB")) %>%
+  addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite",
+                   options = providerTileOptions(attribution = "\u00A9 Stamen Toner Lite")) %>%
+  addProviderTiles(provider = "CartoDB.Positron",group="Carto DB",
+                   options = providerTileOptions(attribution = "\u00A9 CartoDB")) %>%
+  addPolygons(data = porto,stroke = F,color="white",opacity = 0.55,fillOpacity = 0.10,
+              group = "Per韒etro Porto") %>%
   leaflet::addPolylines(
-    data = streets2$osm_lines %>% 
-      filter(is.na(sexoFinal2)),
-    color = "grey",
+    data = streets2$osm_lines %>%
+      filter(is.na(sexoFinal2) & porto == 1),
+    color = "#648767",
     smoothFactor = 0.8,
-    weight = 1,
+    weight = 1.8,
     group="Outros",
-    label=streets2$osm_lines %>% 
-      filter(is.na(sexoFinal2)) %>% pull(name)
-  ) %>% 
+    label=streets2$osm_lines %>%
+      filter(is.na(sexoFinal2) & porto == 1) %>% pull(name)
+  ) %>%
   leaflet::addPolylines(
-    data = streets2$osm_lines %>% 
-      filter(sexoFinal2 == "Male"),
-    color = "blue",
+    data = streets2$osm_lines %>%
+      filter(sexoFinal2 == "Male"& porto == 1),
+    color = "#1282A2",
     smoothFactor = 0.8,
     weight = 1.8,
     group="Homens",
-    label = streets2$osm_lines %>% 
-      filter(sexoFinal2 == "Male") %>% pull(name)
-  ) %>% 
+    label = streets2$osm_lines %>%
+      filter(sexoFinal2 == "Male"& porto == 1) %>% pull(name)
+  ) %>%
   leaflet::addPolylines(
-    data = streets2$osm_lines %>% 
-      filter(sexoFinal2 == "Female"),
-    color = "#FF5F15",
+    data = streets2$osm_lines %>%
+      filter(sexoFinal2 == "Female" & porto == 1)      ,
+    color = "#DC493A",
     smoothFactor = 0.8,
     weight = 2.5,
     group="Mulheres",
-    label = streets2$osm_lines %>% 
-      filter(sexoFinal2 == "Female") %>% pull(name)
-    
-  ) %>% 
+    label = streets2$osm_lines %>%
+      filter(sexoFinal2 == "Female" & porto == 1) %>% pull(name)
+
+  ) %>%
   addLayersControl( baseGroups = c("Dark","Toner Lite","Carto DB"),
-                    overlayGroups = c("Homens","Mulheres","Outros"), 
+                    overlayGroups = c("Homens","Mulheres","Outros","Per韒etro Porto"),
                    options = layersControlOptions(collapsed = FALSE))
 
+ruasintersec = intersec2 %>% as.data.frame() %>% count(name)
 
+sexos = ruasfinal %>%
+  filter(rua %in% ruasintersec$name) %>%
+  count(rua,sexoFinal2) %>%
+  count(sexoFinal2)
+
+sexos %>% mutate(sexoFinal2 = case_when(is.na(sexoFinal2)~"Outros nomes",
+                                        sexoFinal2=="Female"~"Nomes Femininos",
+                                        sexoFinal2=="Male"~"Nomes Masculinos"
+                                        )) %>%
+  ggplot(aes(x=sexoFinal2, y=n,fill=sexoFinal2)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=n),hjust=1.2,
+            #vjust=1.6,
+            color="white",
+            #position = position_dodge(0.9),
+            size=4.5)+
+  scale_fill_manual(values=c("#DC493A", "#1282A2","#648767"))+#DC493A #648767 ##FF5F15
+  coord_flip()+
+  labs(x="",y="",title="Nomes de ruas no Porto")+
+  theme_minimal()+theme(legend.position = "None")
+
+#Mudar o azul
+#Ver se as cores s鉶 colorblind-people-friendly
+#aumentar fonte dos nomes no eixo y
+#remover espa鏾 nas margens internas
+
+
+sexos %>% ggplot(aes(x))
+  filter(sexoFinal2 == "Female") %>%
+  clipr::write_clip()
 
